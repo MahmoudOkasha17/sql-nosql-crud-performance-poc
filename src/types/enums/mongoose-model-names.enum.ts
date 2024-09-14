@@ -1,3 +1,4 @@
 export enum MongooseModelNames {
-  USER = 'User'
+  USER = 'User',
+  USER_FILE = 'UserFile'
 }

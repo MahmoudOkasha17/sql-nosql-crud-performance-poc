@@ -1,8 +1,8 @@
-import { UserZodSchema } from '@/schemas/zod/user.schema';
+import { MongooseUserZodSchema } from '@/schemas/zod/user.schema';
 import { Model } from 'mongoose';
 import { z } from 'zod';
 
-export type UserMongoose = z.infer<typeof UserZodSchema>;
+export type UserMongoose = z.infer<typeof MongooseUserZodSchema>;
 
 export interface IUserMongooseInstanceMethods {}
 

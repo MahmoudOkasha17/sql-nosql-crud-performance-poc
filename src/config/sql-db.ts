@@ -10,15 +10,17 @@ export const sequelizeClient = new Sequelize({
 });
 
 import { SequelizeModelMap } from '@/types/constants/sequelize-model-map.constant';
+import { registerSequelizeAssociations } from '@/helpers/sequelize-association.helper';
 
 export async function checkSequelizeConnection() {
   try {
     await sequelizeClient.authenticate();
 
     // Register models
-    for (const model of Object.values(SequelizeModelMap)) {
-      await model.sync();
-    }
+    await Promise.all(Object.values(SequelizeModelMap).map((model) => model.sync()));
+
+    // Register associations
+    registerSequelizeAssociations();
 
     console.log('Postgres connection has been established successfully.');
   } catch (error) {

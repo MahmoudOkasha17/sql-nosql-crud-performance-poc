@@ -4,6 +4,7 @@
   "description": "Project to test the performance difference between postgres + sequelize vs mongodb + mongoose.",
   "main": "./src/app.ts",
   "scripts": {
+    "seed-users": "ts-node -r tsconfig-paths/register src/seeds/user-seeder.ts",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "status": "tsc --p tsconfig.json --listFiles",
     "test": "jest",
@@ -12,6 +13,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node -r tsconfig-paths/register src/app.ts"
   },
   "_moduleAliases": {
+    "@/seeds": "src/seeds",
     "@/routes": "dist/routes",
     "@/types": "dist/types",
     "@/data": "dist/data",
@@ -21,7 +23,8 @@
     "@/utils": "dist/utils",
     "@/config": "dist/config",
     "@/models": "dist/models",
-    "@/schemas": "dist/schemas"
+    "@/schemas": "dist/schemas",
+    "@/helpers": "dist/helpers"
   },
   "author": "Mahmoud Okasha",
   "license": "ISC",
