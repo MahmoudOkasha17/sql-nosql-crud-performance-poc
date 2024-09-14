@@ -16,11 +16,11 @@ export async function checkSequelizeConnection() {
   try {
     await sequelizeClient.authenticate();
 
-    // Register models
-    await Promise.all(Object.values(SequelizeModelMap).map((model) => model.sync()));
-
     // Register associations
     registerSequelizeAssociations();
+
+    // Register models
+    await Promise.all(Object.values(SequelizeModelMap).map((model) => model.sync()));
 
     console.log('Postgres connection has been established successfully.');
   } catch (error) {

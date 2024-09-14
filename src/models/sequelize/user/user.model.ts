@@ -1,15 +1,16 @@
 import { sequelizeClient } from '@/config/sql-db';
 import { SequelizeModelNames } from '@/types/enums/sequelize-model-names.enum';
-import { DataTypes, Model } from 'sequelize';
-import { IUserSequelizeModel, UserSequelize } from './user.type';
+import { DataTypes } from 'sequelize';
+import { IUserSequelizeModel } from './user.type';
+import { generateUniqueIdSnowflake } from '@/helpers/unique-id-generator.helper';
 
 export const _UserSequelizeModel = sequelizeClient.define(
   SequelizeModelNames.USER,
   {
     _id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       primaryKey: true,
-      autoIncrement: true
+      defaultValue: generateUniqueIdSnowflake
     },
     firstName: {
       type: DataTypes.STRING,
@@ -21,7 +22,13 @@ export const _UserSequelizeModel = sequelizeClient.define(
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    indexes: [
+      {
+        fields: ['_id'],
+        unique: true
+      }
+    ]
   }
 ) as IUserSequelizeModel;
 

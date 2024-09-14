@@ -22,8 +22,13 @@ async function seedUsers(count: number) {
     await checkSequelizeConnection();
     await connectToMongoDb();
 
-    await Promise.all([UserSequelizeModel.drop(), UserMongooseModel.deleteMany({})]);
-    await UserSequelizeModel.sync();
+    await UserFileSequelizeModel.destroy({ where: {} });
+    await Promise.all([
+      UserSequelizeModel.destroy({ where: {} }),
+
+      UserMongooseModel.deleteMany({}),
+      UserFileMongooseModel.deleteMany({})
+    ]);
 
     let batchSize = 10000;
     let totalSeeded = 0;
@@ -53,7 +58,6 @@ async function seedUsers(count: number) {
       ]);
 
       totalSeeded += currentBatchSize;
-      console.log(`Seeded ${totalSeeded} users`);
     }
 
     let userFilesPerUser = 5;
