@@ -22,8 +22,18 @@ const UserSchema = new Schema<UserMongoose, IUserMongooseModel, IUserMongooseIns
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    toObject: {
+      virtuals: true
+    }
   }
 );
+
+UserSchema.virtual('files', {
+  ref: MongooseModelNames.USER_FILE,
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: false
+});
 
 export const UserMongooseModel = mongoose.model(MongooseModelNames.USER, UserSchema);

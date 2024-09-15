@@ -5,6 +5,7 @@
   "main": "./src/app.ts",
   "scripts": {
     "seed-users": "ts-node -r tsconfig-paths/register src/seeds/user-seeder.ts",
+    "compare-performance": "ts-node -r tsconfig-paths/register src/scripts/performance-comparison.script.ts",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "status": "tsc --p tsconfig.json --listFiles",
     "test": "jest",
@@ -24,7 +25,8 @@
     "@/config": "dist/config",
     "@/models": "dist/models",
     "@/schemas": "dist/schemas",
-    "@/helpers": "dist/helpers"
+    "@/helpers": "dist/helpers",
+    "@/scripts": "dist/scripts"
   },
   "author": "Mahmoud Okasha",
   "license": "ISC",
