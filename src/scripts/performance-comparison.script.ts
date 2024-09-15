@@ -155,6 +155,31 @@ async function testCaseDocsWithUserFiles(count: number) {
   startDate = Date.now();
   await UserMongooseModel.aggregate([
     { $limit: count },
+    // {
+    //   $lookup: {
+    //     from: 'userfiles',
+    //     localField: '_id',
+    //     foreignField: 'userId',
+    //     as: 'files'
+    //   }
+    // },
+    // {
+    //   $addFields: {
+    //     files: {
+    //       $map: {
+    //         input: '$files',
+    //         as: 'file',
+    //         in: {
+    //           _id: '$$file._id',
+    //           fileName: '$$file.fileName',
+    //           fileType: '$$file.fileType',
+    //           createdAt: '$$file.createdAt',
+    //           updatedAt: '$$file.updatedAt'
+    //         }
+    //       }
+    //     }
+    //   }
+    // },
     {
       $lookup: {
         from: 'userfiles',
