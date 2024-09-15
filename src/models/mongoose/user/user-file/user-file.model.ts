@@ -1,11 +1,19 @@
 import { MongooseModelNames } from '@/types/enums/mongoose-model-names.enum';
 import mongoose, { Schema } from 'mongoose';
 import { IUserFileMongooseInstanceMethods, IUserFileMongooseModel, UserFileMongoose } from './user-file.type';
+import { generateUniqueIdSnowflake } from '@/helpers/unique-id-generator.helper';
 
 const UserFileSchema = new Schema<UserFileMongoose, IUserFileMongooseModel, IUserFileMongooseInstanceMethods>(
   {
+    _id: {
+      type: Schema.Types.BigInt,
+      required: true,
+      default: () => {
+        return generateUniqueIdSnowflake();
+      }
+    },
     userId: {
-      type: Schema.Types.ObjectId,
+      type: Schema.Types.BigInt,
       ref: MongooseModelNames.USER,
       required: true
     },

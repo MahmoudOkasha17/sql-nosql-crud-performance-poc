@@ -3,19 +3,17 @@ dotenv.config();
 
 import { connectToMongoDb } from '@/config/no-sql-db';
 import { checkSequelizeConnection, sequelizeClient } from '@/config/sql-db';
+import { generateUniqueIdSnowflake } from '@/helpers/unique-id-generator.helper';
 import { UserFileMongooseModel } from '@/models/mongoose/user/user-file/user-file.model';
 import { UserMongooseModel } from '@/models/mongoose/user/user.model';
 import { UserFileSequelizeModel } from '@/models/sequelize/user/user-file/user-file.model';
 import { UserSequelizeModel } from '@/models/sequelize/user/user.model';
-import {
-  BaseUserFileZodSchema,
-  MongooseUserFileZodSchema,
-  SequelizeUserFileZodSchema
-} from '@/schemas/zod/user-file.schema';
+import { BaseUserFileZodSchema } from '@/schemas/zod/user-file.schema';
 import { BaseUserZodSchema } from '@/schemas/zod/user.schema';
 import { faker } from '@faker-js/faker';
 import mongoose from 'mongoose';
 import { z } from 'zod';
+import * as cliProgress from 'cli-progress';
 
 async function seedUsers(count: number) {
   try {
@@ -25,13 +23,17 @@ async function seedUsers(count: number) {
     await UserFileSequelizeModel.destroy({ where: {} });
     await Promise.all([
       UserSequelizeModel.destroy({ where: {} }),
-
       UserMongooseModel.deleteMany({}),
       UserFileMongooseModel.deleteMany({})
     ]);
 
+    const bar = new cliProgress.SingleBar({}, cliProgress.Presets.legacy);
+
+    bar.start(count, 0);
+
     let batchSize = 10000;
     let totalSeeded = 0;
+    let userFilesPerUser = 5;
 
     while (totalSeeded < count) {
       const users: z.infer<typeof BaseUserZodSchema>[] = [];
@@ -39,13 +41,14 @@ async function seedUsers(count: number) {
 
       for (let i = 0; i < currentBatchSize; i++) {
         users.push({
+          _id: generateUniqueIdSnowflake(),
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName()
         });
       }
 
       await Promise.all([
-        UserSequelizeModel.bulkCreate(users),
+        UserSequelizeModel.bulkCreate(users, { logging: false }),
         UserMongooseModel.bulkWrite(
           users.map((u) => {
             return {
@@ -57,65 +60,37 @@ async function seedUsers(count: number) {
         )
       ]);
 
-      totalSeeded += currentBatchSize;
-    }
+      const userFiles: z.infer<typeof BaseUserFileZodSchema>[] = [];
 
-    let userFilesPerUser = 5;
-    batchSize = batchSize / userFilesPerUser;
-    let offset = 0;
-    let hasMore = true;
+      for (const user of users) {
+        for (let i = 0; i < userFilesPerUser; i++) {
+          userFiles.push({
+            _id: generateUniqueIdSnowflake(),
+            userId: user._id,
+            fileName: faker.system.fileName(),
+            fileType: faker.system.fileType()
+          });
+        }
+      }
 
-    while (hasMore) {
-      const [seqUsers, monUsers] = await Promise.all([
-        UserSequelizeModel.findAll({
-          limit: batchSize,
-          offset: offset
-        }),
-        UserMongooseModel.find({}).limit(batchSize).skip(offset)
+      await Promise.all([
+        UserFileSequelizeModel.bulkCreate(userFiles, { logging: false }),
+        UserFileMongooseModel.bulkWrite(
+          userFiles.map((u) => {
+            return {
+              insertOne: {
+                document: u
+              }
+            };
+          })
+        )
       ]);
 
-      if (seqUsers.length === 0) {
-        hasMore = false;
-      } else {
-        const seqUserFiles: z.infer<typeof SequelizeUserFileZodSchema>[] = [];
-        const monUserFiles: z.infer<typeof MongooseUserFileZodSchema>[] = [];
-
-        for (const [index, seqUser] of seqUsers.entries()) {
-          for (let i = 0; i < userFilesPerUser; i++) {
-            const baseData: z.infer<typeof BaseUserFileZodSchema> = {
-              fileName: faker.system.fileName(),
-              fileType: faker.system.fileType()
-            };
-
-            seqUserFiles.push({
-              userId: seqUser._id as number,
-              ...baseData
-            });
-
-            monUserFiles.push({
-              userId: monUsers[index]._id,
-              ...baseData
-            });
-          }
-        }
-
-        await Promise.all([
-          UserFileSequelizeModel.bulkCreate(seqUserFiles),
-          UserFileMongooseModel.bulkWrite(
-            monUserFiles.map((u) => {
-              return {
-                insertOne: {
-                  document: u
-                }
-              };
-            })
-          )
-        ]);
-
-        offset += batchSize;
-      }
+      totalSeeded += currentBatchSize;
+      bar.update(totalSeeded);
     }
 
+    bar.stop();
     console.log('Seeding complete!');
   } catch (error) {
     console.error('Error seeding database:', error);
