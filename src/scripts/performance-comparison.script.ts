@@ -28,7 +28,7 @@ async function comparePerformance() {
       sequelizeRaw: 0
     };
 
-    const testCases = [100, 1000, 10000, 100000, 1000000];
+    const testCases = [100, 1000, 10000, 100000, 400000];
 
     for (const count of testCases) {
       const justDocsStats = await testCaseJustDocs(count);
