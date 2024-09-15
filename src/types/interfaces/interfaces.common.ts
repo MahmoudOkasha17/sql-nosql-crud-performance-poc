@@ -5,8 +5,3 @@ export interface ApiError extends Error {
   statusCode: number;
   data: [] | {};
 }
-
-// Example User interface
-export interface User {
-  name: string;
-}

@@ -11,9 +11,9 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 // Import routes from the ./routes
-import user from '@/routes/user-route';
 import { checkSequelizeConnection } from '@/config/sql-db';
 import { connectToMongoDb } from './config/no-sql-db';
+import user from '@/routes/user-sql-route';
 
 async function appBootStrapper() {
   // Setup constant variables
@@ -53,7 +53,7 @@ async function appBootStrapper() {
   await connectToMongoDb();
 
   // Setup routing
-  app.use('/users', user);
+  app.use('/users-sql', user);
 
   // Listen to specified port in .env or default 5000
   app.listen(PORT, () => {
