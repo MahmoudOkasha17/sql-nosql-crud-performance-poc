@@ -11,8 +11,10 @@ import { QueryTypes } from 'sequelize';
 
 interface IStats {
   mongoose: number;
+  mongooseLeaned: number;
   mongooseAggregated: number;
   sequelize: number;
+  sequelizeLeaned: number;
   sequelizeRaw: number;
 }
 
@@ -23,8 +25,10 @@ async function comparePerformance() {
 
     let stats: IStats = {
       mongoose: 0,
+      mongooseLeaned: 0,
       mongooseAggregated: 0,
       sequelize: 0,
+      sequelizeLeaned: 0,
       sequelizeRaw: 0
     };
 
@@ -58,8 +62,10 @@ async function testCaseJustDocs(count: number) {
 
   const stats: IStats = {
     mongoose: 0,
+    mongooseLeaned: 0,
     mongooseAggregated: 0,
     sequelize: 0,
+    sequelizeLeaned: 0,
     sequelizeRaw: 0
   };
 
@@ -72,6 +78,15 @@ async function testCaseJustDocs(count: number) {
   stats.mongoose += endDate - startDate;
   console.timeEnd(`Mongoose Reading ${count} documents`);
 
+  console.time(`Mongoose Reading ${count} documents Leaned`);
+  startDate = Date.now();
+  await UserMongooseModel.find({}, { _id: 1, firstName: 1, lastName: 1, createdAt: 1, updatedAt: 1 })
+    .limit(count)
+    .lean();
+  endDate = Date.now();
+  stats.mongooseLeaned += endDate - startDate;
+  console.timeEnd(`Mongoose Reading ${count} documents Leaned`);
+
   console.time(`Sequelize Reading ${count} documents`);
   startDate = Date.now();
   await UserSequelizeModel.findAll({
@@ -82,6 +97,18 @@ async function testCaseJustDocs(count: number) {
   endDate = Date.now();
   stats.sequelize += endDate - startDate;
   console.timeEnd(`Sequelize Reading ${count} documents`);
+
+  console.time(`Sequelize Reading ${count} documents Leaned`);
+  startDate = Date.now();
+  await UserSequelizeModel.findAll({
+    limit: count,
+    attributes: ['_id', 'firstName', 'lastName', 'createdAt', 'updatedAt'],
+    logging: false,
+    raw: true
+  });
+  endDate = Date.now();
+  stats.sequelizeLeaned += endDate - startDate;
+  console.timeEnd(`Sequelize Reading ${count} documents Leaned`);
 
   // Reading documents Raw
   console.time(`Mongoose Reading ${count} documents Aggregated`);
@@ -118,8 +145,10 @@ async function testCaseDocsWithUserFiles(count: number) {
 
   const stats: IStats = {
     mongoose: 0,
+    mongooseLeaned: 0,
     mongooseAggregated: 0,
     sequelize: 0,
+    sequelizeLeaned: 0,
     sequelizeRaw: 0
   };
 
@@ -133,6 +162,16 @@ async function testCaseDocsWithUserFiles(count: number) {
   let endDate = Date.now();
   stats.mongoose += endDate - startDate;
   console.timeEnd(`Mongoose Reading ${count} documents`);
+
+  console.time(`Mongoose Reading ${count} documents Leaned`);
+  startDate = Date.now();
+  await UserMongooseModel.find({}, { _id: 1, firstName: 1, lastName: 1, createdAt: 1, updatedAt: 1, files: 1 })
+    .limit(count)
+    .populate('files', { _id: 1, fileName: 1, fileType: 1, createdAt: 1, updatedAt: 1 })
+    .lean();
+  endDate = Date.now();
+  stats.mongooseLeaned += endDate - startDate;
+  console.timeEnd(`Mongoose Reading ${count} documents Leaned`);
 
   console.time(`Sequelize Reading ${count} documents`);
   startDate = Date.now();
@@ -149,6 +188,23 @@ async function testCaseDocsWithUserFiles(count: number) {
   endDate = Date.now();
   stats.sequelize += endDate - startDate;
   console.timeEnd(`Sequelize Reading ${count} documents`);
+
+  console.time(`Sequelize Reading ${count} documents Leaned`);
+  startDate = Date.now();
+  await UserSequelizeModel.findAll({
+    limit: count,
+    attributes: ['_id', 'firstName', 'lastName', 'createdAt', 'updatedAt'],
+    include: {
+      model: UserFileSequelizeModel,
+      as: 'files',
+      attributes: ['_id', 'fileName', 'fileType', 'createdAt', 'updatedAt']
+    },
+    logging: false,
+    raw: true
+  });
+  endDate = Date.now();
+  stats.sequelizeLeaned += endDate - startDate;
+  console.timeEnd(`Sequelize Reading ${count} documents Leaned`);
 
   // Reading documents Raw
   console.time(`Mongoose Reading ${count} documents Aggregated`);
