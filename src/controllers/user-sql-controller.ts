@@ -119,5 +119,6 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response, next:
 
 export const errorUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   // Return json with error message and empty data
+  //throw new Error('Test');
   throw new ApiError({}, 500, 'Handled by asyncHandler');
 });
